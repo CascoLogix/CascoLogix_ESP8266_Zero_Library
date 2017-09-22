@@ -1,0 +1,23 @@
+
+
+
+
+
+#ifndef _CASCO_LOGIX_ESP8266_ZERO_LIBRARY_H_
+#define _CASCO_LOGIX_ESP8266_ZERO_LIBRARY_H_
+
+#include <ESP8266.h>
+
+
+class CL_ESP8266
+{
+public:
+
+private:
+
+}
+
+//extern CL_ESP8266 CL_ESP8266;
+
+
+#endif	// _CASCO_LOGIX_ESP8266_ZERO_LIBRARY_H_
