@@ -102,8 +102,28 @@ AT+CIPDNS_DEF Sets user-defined DNS servers; configuration saved in the flash
 #ifndef _ESP8266_H_
 #define _ESP8266_H_
 
-// Basic AT Commands
+#include <stdint.h>
+#include <IPAddress.h>
+
+
+/*************************************************************************************/
+// Command Response Timeouts														 */
+/*************************************************************************************/
+#define ESP8266_CMD_RESPONSE_TIMEOUT 	1000
+#define ESP8266_CMD_PING_TIMEOUT 		3000
+#define ESP8266_WIFI_CONNECT_TIMEOUT 	30000
+#define ESP8266_CMD_RESET_TIMEOUT 		5000
+#define ESP8266_CLIENT_CONNECT_TIMEOUT 	5000
+
+#define ESP8266_MAX_SOCK_NUM 			5
+#define ESP8266_SOCK_NOT_AVAIL 			255
+
+
+/*************************************************************************************/
+/* Basic AT Commands																 */
+/*************************************************************************************/
 #define ESP8266_AT_TEST				"AT" 				// Tests AT startup.
+#define ESP8266_AT_TERMINATE		"\r\n"				// Terminates the AT command
 #define ESP8266_AT_CMD				"AT+" 				// Prefix to all AT commands.
 #define ESP8266_RESET				"RST" 				// Restarts the module.
 #define ESP8266_GMR 				"GMR" 				// Checks version information.
@@ -126,7 +146,10 @@ AT+CIPDNS_DEF Sets user-defined DNS servers; configuration saved in the flash
 #define ESP8266_SYSGPIOWRITE		"SYSGPIOWRITE" 		// Configures the GPIO output level
 #define ESP8266_SYSGPIOREAD 		"SYSGPIOREAD" 		// Checks the GPIO input level.
 
+
+/*************************************************************************************/
 // WiFi AT Commands
+/*************************************************************************************/
 #define ESP8266_CWMODE 				"CWMODE" 			// Sets the Wi-Fi mode (Station/AP/Station+AP). [@deprecated]
 #define ESP8266_CWMODE_CUR 			"CWMODE_CUR" 		// Sets the Wi-Fi mode (Station/AP/Station+AP); configuration not saved in the flash.
 #define ESP8266_CWMODE_DEF 			"CWMODE_DEF" 		// Sets the default Wi-Fi mode (Station/AP/Station+AP); configuration saved in the flash.
@@ -166,7 +189,10 @@ AT+CIPDNS_DEF Sets user-defined DNS servers; configuration saved in the flash
 #define ESP8266_MDNS 				"MDNS" 				// Sets the MDNS function.
 #define ESP8266_CWHOSTNAME 			"CWHOSTNAME" 		// Sets the host name of the ESP8266 Station.
 
+
+/*************************************************************************************/
 // TCP/IP-Related AT Commands
+/*************************************************************************************/
 #define ESP8266_CIPSTATUS			"CIPSTATUS"			// Gets the connection status
 #define ESP8266_CIPDOMAIN			"CIPDOMAIN"			// DNS function
 #define ESP8266_CIPSTART			"CIPSTART"			// Establishes TCP connection, UDP transmission or SSL connection
@@ -192,15 +218,21 @@ AT+CIPDNS_DEF Sets user-defined DNS servers; configuration saved in the flash
 #define ESP8266_CIPDNS_CUR			"CIPDNS_CUR"		// Sets user-defined DNS servers; configuration not saved in the flash
 #define ESP8266_CIPDNS_DEF			"CIPDNS_DEF"		// Sets user-defined DNS servers; configuration saved in the flash
 
+
+/*************************************************************************************/
 // ESP8266 Responses
-FAIL
-ERROR
-OK
-SUCCESS
-CRLF	"\r\n"
+/*************************************************************************************/
+#define ESP8266_RESPONSE_FAIL		"FAIL"
+#define ESP8266_RESPONSE_ERROR		"ERROR"
+#define ESP8266_RESPONSE_OK			"OK"
+#define ESP8266_RESPONSE_SUCCESS	"SUCCESS"
+#define ESP8266_RESPONSE_READY		"ready"
+#define ESP8266_RESPONSE_CRLF		ESP8266_AT_TERMINATE
 
 
+/*************************************************************************************/
 // Enums and Structs
+/*************************************************************************************/
 typedef enum esp8266_cmd_rsp {
 	ESP8266_CMD_BAD = -5,
 	ESP8266_RSP_MEMORY_ERR = -4,
@@ -216,10 +248,12 @@ typedef enum esp8266_wifi_mode {
 	ESP8266_MODE_STAAP = 3
 };
 
+
 typedef enum esp8266_command_type {
-	ESP8266_CMD_QUERY,
-	ESP8266_CMD_SETUP,
-	ESP8266_CMD_EXECUTE
+	ESP8266_CMD_TEST,			// Test Command AT+<x>=? Queries the Set Commands’ internal parameters and their range of values.
+	ESP8266_CMD_QUERY,			// Query Command AT+<x>? Returns the current value of parameters.
+	ESP8266_CMD_SETUP,			// Set Command AT+<x>=<…> Sets the value of user-defined parameters in commands, and runs these commands.
+	ESP8266_CMD_EXECUTE			// Execute Command AT+<x> Runs commands with no user-defined parameters.
 };
 
 typedef enum esp8266_encryption {
@@ -257,6 +291,10 @@ typedef enum esp8266_tetype {
 	ESP8266_SERVER
 };
 
+
+/*************************************************************************************/
+
+/*************************************************************************************/
 struct esp8266_ipstatus
 {
 	uint8_t linkID;
@@ -270,6 +308,26 @@ struct esp8266_status
 {
 	esp8266_connect_status stat;
 	esp8266_ipstatus ipstatus[ESP8266_MAX_SOCK_NUM];
+};
+
+
+
+/*************************************************************************************/
+/* Different 'struct' approach to AT command interface
+/*************************************************************************************/
+struct {
+	char commandString[];
+	esp8266_command_type commandType;
+	char commandResponseString[];
+	int8_t commandResponseCode[];
+	uint32_t commandResponseTimeout;
+} const AT_command_outline = {
+	{"AT", ESP8266_CMD_EXECUTE, "OK", ESP8266_RSP_SUCCESS, 0},
+	{"AT+", ESP8266_CMD_EXECUTE, "OK", ESP8266_RSP_SUCCESS, 0},
+	{"RST", ESP8266_CMD_EXECUTE, "OK", ESP8266_RSP_SUCCESS, 0},
+	{"GMR", ESP8266_CMD_EXECUTE, "OK", ESP8266_RSP_SUCCESS, 0},
+	{"GSLP", ESP8266_CMD_EXECUTE, "OK", ESP8266_RSP_SUCCESS, 0},
+	{"ATE", ESP8266_CMD_EXECUTE, "OK", ESP8266_RSP_SUCCESS, 0},
 };
 
 #endif	// _ESP8266_H_
