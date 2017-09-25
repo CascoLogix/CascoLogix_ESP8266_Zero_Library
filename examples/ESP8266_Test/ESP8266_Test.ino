@@ -2,7 +2,6 @@
 
 #include <ESPZeroAT.h>
 
-
 void setup() 
 {
   SerialUSB.begin(115200);

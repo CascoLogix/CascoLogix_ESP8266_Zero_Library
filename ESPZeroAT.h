@@ -20,7 +20,7 @@ public:
 	// Basic AT Commands
 	bool test();
 	bool reset();
-	int16_t getVer(char ATversion[], char SDKversion[], char compileTime[]);
+	bool getVer(char ATversion[], char SDKversion[], char compileTime[]);
 	bool disableEcho();
 	bool enableEcho();
 	bool setBaud(uint32_t baud);

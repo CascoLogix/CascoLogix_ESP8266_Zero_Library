@@ -317,12 +317,12 @@ struct esp8266_status
 /* Different 'struct' approach to AT command interface
 /*************************************************************************************/
 struct {
-	char commandString[];
+	char commandString[16];
 	esp8266_command_type commandType;
-	char commandResponseString[];
-	int8_t commandResponseCode[];
+	char commandResponseString[16];
+	esp8266_cmd_rsp commandResponseCode;
 	uint32_t commandResponseTimeout;
-} const AT_command_outline = {
+} const AT_command_outline[] = {
 	{"AT", ESP8266_CMD_EXECUTE, "OK", ESP8266_RSP_SUCCESS, 0},
 	{"AT+", ESP8266_CMD_EXECUTE, "OK", ESP8266_RSP_SUCCESS, 0},
 	{"RST", ESP8266_CMD_EXECUTE, "OK", ESP8266_RSP_SUCCESS, 0},

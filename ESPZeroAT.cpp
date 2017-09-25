@@ -62,7 +62,7 @@ bool ESPZeroAT::reset()
 	}
 }
 
-int16_t ESPZeroAT::getVer(char ATversion[], char SDKversion[], char compileTime[])
+bool ESPZeroAT::getVer(char ATversion[], char SDKversion[], char compileTime[])
 {
 	sendCommand(ESP8266_VERSION); // Send AT+GMR
 	// Example Response: AT version:0.30.0.0(Jul  3 2015 19:35:49)\r\n (43 chars)
