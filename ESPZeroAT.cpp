@@ -4,12 +4,12 @@
 
 #include "ESPZeroAT.h"
 
-void CL_ESP8266::CL_ESP8266()
+void ESPZeroAT::ESPZeroAT()
 {
 	
 }
 
-void CL_ESP8266::begin(HardwareSerial* ptrHWSerial, uint32_t baud)
+void ESPZeroAT::begin(HardwareSerial* ptrHWSerial, uint32_t baud)
 {
 	_baud = baud;
 	_ptrHWSerial = ptrHWSerial;
@@ -31,7 +31,7 @@ void CL_ESP8266::begin(HardwareSerial* ptrHWSerial, uint32_t baud)
 /*************************************************************************************/
 /* Basic AT Commands 																 */
 /*************************************************************************************/
-bool CL_ESP8266::test()
+bool ESPZeroAT::test()
 {
 	_ptrHWSerial->print(ESP8266_AT_TEST); 		// Send AT
 	_ptrHWSerial->print(ESP8266_AT_TERMINATE);	// Terminate command string
@@ -47,7 +47,7 @@ bool CL_ESP8266::test()
 	}
 }
 
-bool CL_ESP8266::reset()
+bool ESPZeroAT::reset()
 {
 	sendCommand(ESP8266_RESET); // Send AT+RST
 
@@ -62,7 +62,7 @@ bool CL_ESP8266::reset()
 	}
 }
 
-bool CL_ESP8266::disableEcho()
+bool ESPZeroAT::disableEcho()
 {
 	sendCommand(ESP8266_ECHO_DISABLE);
 
@@ -77,7 +77,7 @@ bool CL_ESP8266::disableEcho()
 	}
 }
 
-bool CL_ESP8266::enableEcho()
+bool ESPZeroAT::enableEcho()
 {
 	sendCommand(ESP8266_ECHO_ENABLE);
 
@@ -92,7 +92,7 @@ bool CL_ESP8266::enableEcho()
 	}
 }
 
-bool CL_ESP8266::setBaud(uint32_t baud)
+bool ESPZeroAT::setBaud(uint32_t baud)
 {
 	char parameters[16];
 	memset(parameters, 0, 16);
@@ -116,7 +116,7 @@ bool CL_ESP8266::setBaud(uint32_t baud)
 	}
 }
 
-int16_t CL_ESP8266::getVer(char ATversion[], char SDKversion[], char compileTime[])
+int16_t ESPZeroAT::getVer(char ATversion[], char SDKversion[], char compileTime[])
 {
 	sendCommand(ESP8266_VERSION); // Send AT+GMR
 	// Example Response: AT version:0.30.0.0(Jul  3 2015 19:35:49)\r\n (43 chars)
@@ -192,7 +192,7 @@ int16_t CL_ESP8266::getVer(char ATversion[], char SDKversion[], char compileTime
 // Private, Low-Level, Ugly, Hardware Functions //
 //////////////////////////////////////////////////
 
-void CL_ESP8266::sendCommand(const char * cmd, enum esp8266_command_type type, const char * params)
+void ESPZeroAT::sendCommand(const char * cmd, enum esp8266_command_type type, const char * params)
 {
 	_ptrHWSerial->print(ESP8266_AT_CMD);
 	_ptrHWSerial->print(cmd);
@@ -211,7 +211,7 @@ void CL_ESP8266::sendCommand(const char * cmd, enum esp8266_command_type type, c
 	_ptrHWSerial->print("\r\n");
 }
 
-int16_t CL_ESP8266::getResponse(const char * rsp, uint8_t* len)
+int16_t ESPZeroAT::getResponse(const char * rsp, uint8_t* len)
 {
 	uint32_t received = 0; // received keeps track of number of chars read
 
@@ -228,7 +228,7 @@ int16_t CL_ESP8266::getResponse(const char * rsp, uint8_t* len)
 	}
 }
 
-int16_t CL_ESP8266::getResponse(const char * rsp, uint8_t* len, uint32_t timeout)
+int16_t ESPZeroAT::getResponse(const char * rsp, uint8_t* len, uint32_t timeout)
 {
 	int16_t retVal = 0;
 
@@ -239,7 +239,7 @@ int16_t CL_ESP8266::getResponse(const char * rsp, uint8_t* len, uint32_t timeout
 	return retVal;								// Return status
 }
 
-int16_t CL_ESP8266::readForResponses(const char * pass, const char * fail, uint32_t timeout)
+int16_t ESPZeroAT::readForResponses(const char * pass, const char * fail, uint32_t timeout)
 {
 	uint32_t timeIn = millis();	// Timestamp coming into function
 	uint32_t received = 0; // received keeps track of number of chars read
@@ -277,13 +277,13 @@ int16_t CL_ESP8266::readForResponses(const char * pass, const char * fail, uint3
 //////////////////
 // Buffer Stuff //
 //////////////////
-void CL_ESP8266::clearBuffer()
+void ESPZeroAT::clearBuffer()
 {
 	memset(esp8266RxBuffer, '\0', ESP8266_RX_BUFFER_LEN);
 	bufferHead = 0;
 }
 
-unsigned int CL_ESP8266::readByteToBuffer()
+unsigned int ESPZeroAT::readByteToBuffer()
 {
 	// Read the data in
 	char c = _ptrHWSerial->read();
@@ -296,7 +296,7 @@ unsigned int CL_ESP8266::readByteToBuffer()
 	return 1;
 }
 
-char * CL_ESP8266::searchBuffer(const char * test)
+char * ESPZeroAT::searchBuffer(const char * test)
 {
 	int bufferLen = strlen((const char *)esp8266RxBuffer);
 	// If our buffer isn't full, just do an strstr
@@ -314,4 +314,4 @@ char * CL_ESP8266::searchBuffer(const char * test)
 	}
 }
 
-CL_ESP8266 ESP8266;
+ESPZeroAT ESP8266;

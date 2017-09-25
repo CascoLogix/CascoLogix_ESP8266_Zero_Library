@@ -7,13 +7,14 @@
 #define _CASCO_LOGIX_ESP8266_ZERO_LIBRARY_H_
 
 
+#include <Arduino.h>
 #include <ESP8266.h>
 
 
-class CL_ESP8266 : public Stream
+class ESPZeroAT : public Stream
 {
 public:
-	CL_ESP8266();
+	ESPZeroAT();
 	void begin(HardwareSerial* ptrHWSerial, uint32_t baud);
 
 	// Basic AT Commands
@@ -77,6 +78,6 @@ private:
 	uint8_t sync();
 };
 
-extern CL_ESP8266 ESP8266;
+extern ESPZeroAT ESP8266;
 
 #endif	// _CASCO_LOGIX_ESP8266_ZERO_LIBRARY_H_
