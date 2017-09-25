@@ -14,7 +14,7 @@ class CL_ESP8266 : public Stream
 {
 public:
 	CL_ESP8266();
-	void begin(Stream* port, uint32_t baud);
+	void begin(HardwareSerial* ptrHWSerial, uint32_t baud);
 
 	// Basic AT Commands
 	bool test();
@@ -49,13 +49,14 @@ public:
 	int16_t ping(IPAddress ip);
 	int16_t ping(char * server);
 private:
-    Stream* _port;
+    HardwareSerial* _ptrHWSerial;
     uint32_t _baud;
 	//////////////////////////
 	// Command Send/Receive //
 	//////////////////////////
 	void sendCommand(const char * cmd, enum esp8266_command_type type = ESP8266_CMD_EXECUTE, const char * params = NULL);
-	int16_t readForResponse(const char * rsp, uint32_t timeout);
+	int16_t getResponse(const char * rsp, uint8_t* len);
+	int16_t getResponse(const char * rsp, uint8_t* len, uint32_t timeout);
 	int16_t readForResponses(const char * pass, const char * fail, uint32_t timeout);
 
 	//////////////////

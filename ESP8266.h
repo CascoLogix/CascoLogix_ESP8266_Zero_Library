@@ -226,6 +226,7 @@ AT+CIPDNS_DEF Sets user-defined DNS servers; configuration saved in the flash
 #define ESP8266_RESPONSE_ERROR		"ERROR"
 #define ESP8266_RESPONSE_OK			"OK"
 #define ESP8266_RESPONSE_SUCCESS	"SUCCESS"
+#define ESP8266_RESPONSE_CONNECTED	"ALREADY CONNECT"		// Used with connection commands
 #define ESP8266_RESPONSE_READY		"ready"
 #define ESP8266_RESPONSE_CRLF		ESP8266_AT_TERMINATE
 

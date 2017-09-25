@@ -2,19 +2,19 @@
 
 
 
-#include <CascoLogix_ESP8266_Zero_Library.h>
+#include "ESPZeroAT.h"
 
 void CL_ESP8266::CL_ESP8266()
 {
 	
 }
 
-void CL_ESP8266::begin(Stream* port, uint32_t baud)
+void CL_ESP8266::begin(HardwareSerial* ptrHWSerial, uint32_t baud)
 {
 	_baud = baud;
-	_port = port;
+	_ptrHWSerial = ptrHWSerial;
 
-	_port->begin(_baud);			// This is the 'Serial.begin()' method
+	_ptrHWSerial->begin(_baud);			// This is the 'Serial.begin()' method
 	
 	if (this->test())
 	{
@@ -33,10 +33,10 @@ void CL_ESP8266::begin(Stream* port, uint32_t baud)
 /*************************************************************************************/
 bool CL_ESP8266::test()
 {
-	_serial->print(ESP8266_AT_TEST); 		// Send AT
-	_serial->print(ESP8266_AT_TERMINATE);	// Terminate command string
+	_ptrHWSerial->print(ESP8266_AT_TEST); 		// Send AT
+	_ptrHWSerial->print(ESP8266_AT_TERMINATE);	// Terminate command string
 
-	if (readForResponse(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT) > 0)
+	if (_ptrHWSerial->find(RESPONSE_OK))
 	{
 		return true;
 	}
@@ -51,7 +51,7 @@ bool CL_ESP8266::reset()
 {
 	sendCommand(ESP8266_RESET); // Send AT+RST
 
-	if (readForResponse(ESP8266_RESPONSE_READY, ESP8266_CMD_RESPONSE_TIMEOUT) > 0)
+	if (_ptrHWSerial->find(ESP8266_RESPONSE_READY))
 	{
 		return true;
 	}
@@ -66,7 +66,7 @@ bool CL_ESP8266::disableEcho()
 {
 	sendCommand(ESP8266_ECHO_DISABLE);
 
-	if (readForResponse(ESP8266_RESPONSE_OK, ESP8266_CMD_RESPONSE_TIMEOUT) > 0)
+	if (_ptrHWSerial->find(ESP8266_RESPONSE_OK))
 	{
 		return true;
 	}
@@ -81,7 +81,7 @@ bool CL_ESP8266::enableEcho()
 {
 	sendCommand(ESP8266_ECHO_ENABLE);
 
-	if (readForResponse(ESP8266_RESPONSE_OK, ESP8266_CMD_RESPONSE_TIMEOUT) > 0)
+	if (_ptrHWSerial->find(ESP8266_RESPONSE_OK))
 	{
 		return true;
 	}
@@ -105,7 +105,7 @@ bool CL_ESP8266::setBaud(uint32_t baud)
 	// Send AT+UART=baud,databits,stopbits,parity,flowcontrol
 	sendCommand(ESP8266_UART, ESP8266_CMD_SETUP, parameters);
 
-	if (readForResponse(ESP8266_RESPONSE_OK, ESP8266_CMD_RESPONSE_TIMEOUT) > 0)
+	if (_ptrHWSerial->find(ESP8266_RESPONSE_OK))
 	{
 		return true;
 	}
@@ -125,7 +125,7 @@ int16_t CL_ESP8266::getVer(char ATversion[], char SDKversion[], char compileTime
 	//                   OK\r\n
 	// (~101 characters)
 	// Look for "OK":
-	int16_t rsp = (readForResponse(ESP8266_RESPONSE_OK, ESP8266_CMD_RESPONSE_TIMEOUT) > 0);
+	int16_t rsp = (_ptrHWSerial->find(ESP8266_RESPONSE_OK));
 	if (rsp > 0)
 	{
 		char *p, *q;
@@ -194,41 +194,28 @@ int16_t CL_ESP8266::getVer(char ATversion[], char SDKversion[], char compileTime
 
 void CL_ESP8266::sendCommand(const char * cmd, enum esp8266_command_type type, const char * params)
 {
-	_serial->print(ESP8266_AT_CMD);
-	_serial->print(cmd);
+	_ptrHWSerial->print(ESP8266_AT_CMD);
+	_ptrHWSerial->print(cmd);
 
 	if (type == ESP8266_CMD_QUERY)
 	{
-		_serial->print('?');
+		_ptrHWSerial->print('?');
 	}
 
 	else if (type == ESP8266_CMD_SETUP)
 	{
-		_serial->print("=");
-		_serial->print(params);
+		_ptrHWSerial->print("=");
+		_ptrHWSerial->print(params);
 	}
 
-	_serial->print("\r\n");
+	_ptrHWSerial->print("\r\n");
 }
 
-int16_t CL_ESP8266::readForResponse(const char * rsp, uint32_t timeout)
+int16_t CL_ESP8266::getResponse(const char * rsp, uint8_t* len)
 {
-	uint32_t timeIn = millis();	// Timestamp coming into function
 	uint32_t received = 0; // received keeps track of number of chars read
 
 	clearBuffer();	// Clear the class receive buffer (esp8266RxBuffer)
-	while (timeIn + timeout > millis()) // While we haven't timed out
-	{
-		if (_serial->available()) // If data is available on UART RX
-		{
-			received += readByteToBuffer();
-
-			if (searchBuffer(rsp))	// Search the buffer for goodRsp
-			{
-				return received;	// Return how number of chars read
-			}
-		}
-	}
 
 	if (received > 0) // If we received any characters
 	{
@@ -241,6 +228,17 @@ int16_t CL_ESP8266::readForResponse(const char * rsp, uint32_t timeout)
 	}
 }
 
+int16_t CL_ESP8266::getResponse(const char * rsp, uint8_t* len, uint32_t timeout)
+{
+	int16_t retVal = 0;
+
+	_ptrHWSerial->setTimeout(timeout);			// Sets timeout
+	retVal = _ptrHWSerial->find(rsp);			// Look for "\r\n"
+	*len = _ptrHWSerial->available();			// Get #bytes in RX buffer
+	_ptrHWSerial->readString(rsp);				// Read string from RX buffer
+	return retVal;								// Return status
+}
+
 int16_t CL_ESP8266::readForResponses(const char * pass, const char * fail, uint32_t timeout)
 {
 	uint32_t timeIn = millis();	// Timestamp coming into function
@@ -249,7 +247,7 @@ int16_t CL_ESP8266::readForResponses(const char * pass, const char * fail, uint3
 	clearBuffer();	// Clear the class receive buffer (esp8266RxBuffer)
 	while (timeIn + timeout > millis()) // While we haven't timed out
 	{
-		if (_serial->available()) // If data is available on UART RX
+		if (_ptrHWSerial->available()) // If data is available on UART RX
 		{
 			received += readByteToBuffer();
 
@@ -288,7 +286,7 @@ void CL_ESP8266::clearBuffer()
 unsigned int CL_ESP8266::readByteToBuffer()
 {
 	// Read the data in
-	char c = _serial->read();
+	char c = _ptrHWSerial->read();
 
 	// Store the data in the buffer
 	esp8266RxBuffer[bufferHead] = c;
