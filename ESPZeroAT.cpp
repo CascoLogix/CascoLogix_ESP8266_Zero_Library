@@ -9,7 +9,7 @@ void ESPZeroAT::ESPZeroAT()
 	
 }
 
-void ESPZeroAT::begin(HardwareSerial* ptrHWSerial, uint32_t baud)
+bool ESPZeroAT::begin(HardwareSerial* ptrHWSerial, uint32_t baud)
 {
 	_baud = baud;
 	_ptrHWSerial = ptrHWSerial;
@@ -52,60 +52,6 @@ bool ESPZeroAT::reset()
 	sendCommand(ESP8266_RESET); // Send AT+RST
 
 	if (_ptrHWSerial->find(ESP8266_RESPONSE_READY))
-	{
-		return true;
-	}
-
-	else
-	{
-		return false;
-	}
-}
-
-bool ESPZeroAT::disableEcho()
-{
-	sendCommand(ESP8266_ECHO_DISABLE);
-
-	if (_ptrHWSerial->find(ESP8266_RESPONSE_OK))
-	{
-		return true;
-	}
-
-	else
-	{
-		return false;
-	}
-}
-
-bool ESPZeroAT::enableEcho()
-{
-	sendCommand(ESP8266_ECHO_ENABLE);
-
-	if (_ptrHWSerial->find(ESP8266_RESPONSE_OK))
-	{
-		return true;
-	}
-
-	else
-	{
-		return false;
-	}
-}
-
-bool ESPZeroAT::setBaud(uint32_t baud)
-{
-	char parameters[16];
-	memset(parameters, 0, 16);
-	// Constrain parameters:
-	baud = constrain(baud, 110, 115200);
-
-	// Put parameters into string
-	sprintf(parameters, "%d,8,1,0,0", baud);
-
-	// Send AT+UART=baud,databits,stopbits,parity,flowcontrol
-	sendCommand(ESP8266_UART, ESP8266_CMD_SETUP, parameters);
-
-	if (_ptrHWSerial->find(ESP8266_RESPONSE_OK))
 	{
 		return true;
 	}
@@ -188,6 +134,52 @@ int16_t ESPZeroAT::getVer(char ATversion[], char SDKversion[], char compileTime[
 	return rsp;
 }
 
+bool ESPZeroAT::disableEcho()
+{
+	sendCommand(ESP8266_ECHO_DISABLE);
+
+	if (_ptrHWSerial->find(ESP8266_RESPONSE_OK))
+	{
+		return true;
+	}
+
+	else
+	{
+		return false;
+	}
+}
+
+bool ESPZeroAT::enableEcho()
+{
+	sendCommand(ESP8266_ECHO_ENABLE);
+
+	if (_ptrHWSerial->find(ESP8266_RESPONSE_OK))
+	{
+		return true;
+	}
+
+	else
+	{
+		return false;
+	}
+}
+
+bool ESPZeroAT::setBaud(uint32_t baud)
+{
+	// Send AT+UART=baud,databits,stopbits,parity,flowcontrol
+	//sendCommand();
+
+	if (_ptrHWSerial->find(ESP8266_RESPONSE_OK))
+	{
+		return true;
+	}
+
+	else
+	{
+		return false;
+	}
+}
+
 //////////////////////////////////////////////////
 // Private, Low-Level, Ugly, Hardware Functions //
 //////////////////////////////////////////////////
@@ -211,6 +203,7 @@ void ESPZeroAT::sendCommand(const char * cmd, enum esp8266_command_type type, co
 	_ptrHWSerial->print("\r\n");
 }
 
+/*
 int16_t ESPZeroAT::getResponse(const char * rsp, uint8_t* len)
 {
 	uint32_t received = 0; // received keeps track of number of chars read
@@ -227,7 +220,9 @@ int16_t ESPZeroAT::getResponse(const char * rsp, uint8_t* len)
 		return ESP8266_RSP_TIMEOUT; // Return the timeout error code
 	}
 }
+*/
 
+/*
 int16_t ESPZeroAT::getResponse(const char * rsp, uint8_t* len, uint32_t timeout)
 {
 	int16_t retVal = 0;
@@ -238,7 +233,9 @@ int16_t ESPZeroAT::getResponse(const char * rsp, uint8_t* len, uint32_t timeout)
 	_ptrHWSerial->readString(rsp);				// Read string from RX buffer
 	return retVal;								// Return status
 }
+*/
 
+/*
 int16_t ESPZeroAT::readForResponses(const char * pass, const char * fail, uint32_t timeout)
 {
 	uint32_t timeIn = millis();	// Timestamp coming into function
@@ -273,16 +270,20 @@ int16_t ESPZeroAT::readForResponses(const char * pass, const char * fail, uint32
 		return ESP8266_RSP_TIMEOUT; // Return the timeout error code
 	}
 }
+*/
 
 //////////////////
 // Buffer Stuff //
 //////////////////
+/*
 void ESPZeroAT::clearBuffer()
 {
 	memset(esp8266RxBuffer, '\0', ESP8266_RX_BUFFER_LEN);
 	bufferHead = 0;
 }
+*/
 
+/*
 unsigned int ESPZeroAT::readByteToBuffer()
 {
 	// Read the data in
@@ -295,7 +296,9 @@ unsigned int ESPZeroAT::readByteToBuffer()
 
 	return 1;
 }
+*/
 
+/*
 char * ESPZeroAT::searchBuffer(const char * test)
 {
 	int bufferLen = strlen((const char *)esp8266RxBuffer);
@@ -313,5 +316,6 @@ char * ESPZeroAT::searchBuffer(const char * test)
 		}
 	}
 }
+*/
 
 ESPZeroAT ESP8266;
