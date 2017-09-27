@@ -2,11 +2,12 @@
 
 
 
-#include "ESPZeroAT.h"
+#include <ESPZeroAT.h>
 
-void ESPZeroAT::ESPZeroAT()
+ESPZeroAT::ESPZeroAT()
 {
-	
+	_baud = 115200;
+	_ptrHWSerial = 0;
 }
 
 bool ESPZeroAT::begin(HardwareSerial* ptrHWSerial, uint32_t baud)
@@ -36,7 +37,7 @@ bool ESPZeroAT::test()
 	_ptrHWSerial->print(ESP8266_AT_TEST); 		// Send AT
 	_ptrHWSerial->print(ESP8266_AT_TERMINATE);	// Terminate command string
 
-	if (_ptrHWSerial->find(RESPONSE_OK))
+	if (_ptrHWSerial->find(ESP8266_RESPONSE_OK))
 	{
 		return true;
 	}
@@ -64,7 +65,7 @@ bool ESPZeroAT::reset()
 
 bool ESPZeroAT::getVer(char ATversion[], char SDKversion[], char compileTime[])
 {
-	sendCommand(ESP8266_VERSION); // Send AT+GMR
+	sendCommand(ESP8266_GMR); // Send AT+GMR
 	// Example Response: AT version:0.30.0.0(Jul  3 2015 19:35:49)\r\n (43 chars)
 	//                   SDK version:1.2.0\r\n (19 chars)
 	//                   compile time:Jul  7 2015 18:34:26\r\n (36 chars)
@@ -72,6 +73,8 @@ bool ESPZeroAT::getVer(char ATversion[], char SDKversion[], char compileTime[])
 	// (~101 characters)
 	// Look for "OK":
 	int16_t rsp = (_ptrHWSerial->find(ESP8266_RESPONSE_OK));
+
+	/*
 	if (rsp > 0)
 	{
 		char *p, *q;
@@ -79,7 +82,7 @@ bool ESPZeroAT::getVer(char ATversion[], char SDKversion[], char compileTime[])
 		// Look for "AT version" in the rxBuffer
 		p = strstr(esp8266RxBuffer, "AT version:");
 
-		if (p == NULL)
+		if (p == 0)
 		{
 			return ESP8266_RSP_UNKNOWN;
 		}
@@ -87,7 +90,7 @@ bool ESPZeroAT::getVer(char ATversion[], char SDKversion[], char compileTime[])
 		p += strlen("AT version:");
 		q = strchr(p, '\r'); // Look for \r
 
-		if (q == NULL)
+		if (q == 0)
 		{
 			return ESP8266_RSP_UNKNOWN;
 		}
@@ -97,7 +100,7 @@ bool ESPZeroAT::getVer(char ATversion[], char SDKversion[], char compileTime[])
 		// Look for "SDK version:" in the rxBuffer
 		p = strstr(esp8266RxBuffer, "SDK version:");
 
-		if (p == NULL)
+		if (p == 0)
 		{
 			return ESP8266_RSP_UNKNOWN;
 		}
@@ -105,7 +108,7 @@ bool ESPZeroAT::getVer(char ATversion[], char SDKversion[], char compileTime[])
 		p += strlen("SDK version:");
 		q = strchr(p, '\r'); // Look for \r
 
-		if (q == NULL)
+		if (q == 0)
 		{
 			return ESP8266_RSP_UNKNOWN;
 		}
@@ -115,7 +118,7 @@ bool ESPZeroAT::getVer(char ATversion[], char SDKversion[], char compileTime[])
 		// Look for "compile time:" in the rxBuffer
 		p = strstr(esp8266RxBuffer, "compile time:");
 
-		if (p == NULL)
+		if (p == 0)
 		{
 			return ESP8266_RSP_UNKNOWN;
 		}
@@ -123,20 +126,21 @@ bool ESPZeroAT::getVer(char ATversion[], char SDKversion[], char compileTime[])
 		p += strlen("compile time:");
 		q = strchr(p, '\r'); // Look for \r
 
-		if (q == NULL)
+		if (q == 0)
 		{
 			return ESP8266_RSP_UNKNOWN;
 		}
 
 		strncpy(compileTime, p, q-p);
 	}
+	*/
 
 	return rsp;
 }
 
 bool ESPZeroAT::disableEcho()
 {
-	sendCommand(ESP8266_ECHO_DISABLE);
+	sendCommand(ESP8266_ATE0);
 
 	if (_ptrHWSerial->find(ESP8266_RESPONSE_OK))
 	{
@@ -151,7 +155,7 @@ bool ESPZeroAT::disableEcho()
 
 bool ESPZeroAT::enableEcho()
 {
-	sendCommand(ESP8266_ECHO_ENABLE);
+	sendCommand(ESP8266_ATE1);
 
 	if (_ptrHWSerial->find(ESP8266_RESPONSE_OK))
 	{

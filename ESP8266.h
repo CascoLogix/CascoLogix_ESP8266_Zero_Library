@@ -128,7 +128,8 @@ AT+CIPDNS_DEF Sets user-defined DNS servers; configuration saved in the flash
 #define ESP8266_RESET				"RST" 				// Restarts the module.
 #define ESP8266_GMR 				"GMR" 				// Checks version information.
 #define ESP8266_GSLP 				"GSLP" 				// Enters Deep-sleep mode.
-#define ESP8266_ATE 				"ATE" 				// Configures echoing of AT commands.
+#define ESP8266_ATE1 				"ATE1" 				// Configures echoing of AT commands to enabled.
+#define ESP8266_ATE0 				"ATE0" 				// Configures echoing of AT commands to disabled.
 #define ESP8266_RESTORE 			"RESTORE" 			// Restores the factory default settings of the module.
 #define ESP8266_UART 				"UART" 				// UART configuration. [@deprecated]
 #define ESP8266_UART_CUR 			"UART_CUR" 			// The current UART configuration.

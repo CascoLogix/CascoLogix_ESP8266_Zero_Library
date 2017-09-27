@@ -3,15 +3,17 @@
 
 
 
-#ifndef _CASCO_LOGIX_ESP8266_ZERO_LIBRARY_H_
-#define _CASCO_LOGIX_ESP8266_ZERO_LIBRARY_H_
+#ifndef _ESP_ZERO_AT_H_
+#define _ESP_ZERO_AT_H_
 
 
 #include <Arduino.h>
 #include <ESP8266.h>
+#include <HardwareSerial.h>
+//#include <Stream.h>
 
 
-class ESPZeroAT : public Stream
+class ESPZeroAT //: public Stream
 {
 public:
 	ESPZeroAT();
@@ -87,4 +89,4 @@ private:
 
 extern ESPZeroAT ESP8266;
 
-#endif	// _CASCO_LOGIX_ESP8266_ZERO_LIBRARY_H_
+#endif	// _ESP_ZERO_AT_H_
