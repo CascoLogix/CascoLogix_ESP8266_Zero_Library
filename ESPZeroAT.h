@@ -61,7 +61,7 @@ private:
 	//////////////////////////
 	// Command Send/Receive //
 	//////////////////////////
-	void sendCommand(const char * cmd, enum esp8266_command_type type = ESP8266_CMD_EXECUTE, const char * params = NULL);
+	void sendCommand(const char * cmd, enum esp8266_command_type type = ESP8266_CMD_EXECUTE, const char * params = 0);
 	//int16_t getResponse(const char * rsp, uint8_t* len);
 	//int16_t getResponse(const char * rsp, uint8_t* len, uint32_t timeout);
 	//int16_t readForResponses(const char * pass, const char * fail, uint32_t timeout);
