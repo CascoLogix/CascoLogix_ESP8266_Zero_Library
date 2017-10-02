@@ -1,5 +1,5 @@
 /**
- *  @file     ESP8266ZeroAT.h
+ *  @file     ESPZeroAT.h
  *  @author   Clint Stevenson (Casco Logix)
  *  @license  GPLv3
  *
@@ -35,6 +35,9 @@
 //#include <Stream.h>
 
 
+#define MAX_SSID_LEN	32	// Per the 802.11 standard (Note: may/may not include null terminator)
+
+
 class ESPZeroAT //: public Stream
 {
 public:
@@ -45,9 +48,28 @@ public:
 	bool test();
 	bool reset();
 	bool getVer(char ATversion[], char SDKversion[], char compileTime[]);
-	bool disableEcho();
-	bool enableEcho();
-	bool setBaud(uint32_t baud);
+	bool deepSleep(uint32_t t_mS);
+	bool disableEcho(void);
+	bool enableEcho(void);
+	bool restore(void);
+	bool setUART(uint32_t baud, uint8_t dataBits, uint8_t stopBits, uint8_t parity, uint8_t flowControl);
+	// TODO: bool setDataBits();
+	// TODO: bool setStopBits();
+	// TODO: bool setParity();
+	// TODO: bool setFlowControl();
+	bool sleep(uint8_t sleepMode);
+	bool wakeGPIO(bool trigEnable, uint8_t trigSourcePin, bool trigLogicLevel);
+	bool wakeGPIO(bool trigEnable, uint8_t trigSourcePin, bool trigLogicLevel, uint8_t trigSourceFlag, bool awakeLogicLevel);
+	// TODO: bool setRFpower();
+	// TODO: bool setRFbyVDD33();
+	// TODO: bool setRFautoTrace();
+	// TODO: bool checkSystemRAM();
+	bool checkSystemADC(uint16_t* adcVal);
+	bool setGPIOmode(uint8_t pin, uint8_t mode, bool pullup);
+	// TODO: bool getGPIOmode();
+	bool setGPIOdir(uint8_t pin, bool dir);
+	bool writeGPIO(uint8_t pin, bool level);
+	bool readGPIO(uint8_t pin, bool* level);
 
 	// WiFi Functions
 	/*
@@ -83,6 +105,7 @@ private:
 	//////////////////////////
 	// Command Send/Receive //
 	//////////////////////////
+    void sendCommand(const char * cmd, const char digit);
 	void sendCommand(const char * cmd, enum esp8266_command_type type = ESP8266_CMD_EXECUTE, const char * params = 0);
 	//int16_t getResponse(const char * rsp, uint8_t* len);
 	//int16_t getResponse(const char * rsp, uint8_t* len, uint32_t timeout);

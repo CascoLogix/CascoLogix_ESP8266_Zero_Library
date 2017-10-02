@@ -1,5 +1,5 @@
 /**
- *  @file     ESP8266ZeroAT.cpp
+ *  @file     ESPZeroAT.cpp
  *  @author   Clint Stevenson (Casco Logix)
  *  @license  GPLv3
  *
@@ -88,128 +88,322 @@ bool ESPZeroAT::reset()
 
 bool ESPZeroAT::getVer(char ATversion[], char SDKversion[], char compileTime[])
 {
-	sendCommand(ESP8266_GMR); // Send AT+GMR
 	// Example Response: AT version:0.30.0.0(Jul  3 2015 19:35:49)\r\n (43 chars)
 	//                   SDK version:1.2.0\r\n (19 chars)
 	//                   compile time:Jul  7 2015 18:34:26\r\n (36 chars)
 	//                   OK\r\n
 	// (~101 characters)
 	// Look for "OK":
-	int16_t rsp = (_ptrHWSerial->find(ESP8266_RESPONSE_OK));
 
-	/*
-	if (rsp > 0)
+	int16_t bytesRead = 0;
+	int16_t totalBytesRead = 0;
+	uint8_t findResult = 0;
+
+	struct {
+		char* pStrResponse;
+		char* pStrResult;
+	} parseTable[] = {
+	//	{pStrResponse, pStrResult},
+		{"AT version:", ATversion},
+		{"SDK version:", SDKversion},
+		{"compile time:", compileTime}
+	};
+
+	sendCommand(ESP8266_GMR); // Send AT+GMR
+
+	uint8_t idx;
+	for(idx = 0; idx < 3; idx++)
 	{
-		char *p, *q;
+		findResult = _ptrHWSerial->find(parseTable[idx].pStrResponse);
 
-		// Look for "AT version" in the rxBuffer
-		p = strstr(esp8266RxBuffer, "AT version:");
-
-		if (p == 0)
+		if(findResult)
 		{
-			return ESP8266_RSP_UNKNOWN;
+			bytesRead = _ptrHWSerial->readBytesUntil('\r', parseTable[idx].pStrResult, 30);
+			totalBytesRead += bytesRead;
+
+			*(parseTable[idx].pStrResult + bytesRead - 1) = 0;	// Replace '\r' with null terminator
+
+			_ptrHWSerial->read();	// Read '\n' character
+			totalBytesRead++;
 		}
-
-		p += strlen("AT version:");
-		q = strchr(p, '\r'); // Look for \r
-
-		if (q == 0)
-		{
-			return ESP8266_RSP_UNKNOWN;
-		}
-
-		strncpy(ATversion, p, q-p);
-
-		// Look for "SDK version:" in the rxBuffer
-		p = strstr(esp8266RxBuffer, "SDK version:");
-
-		if (p == 0)
-		{
-			return ESP8266_RSP_UNKNOWN;
-		}
-
-		p += strlen("SDK version:");
-		q = strchr(p, '\r'); // Look for \r
-
-		if (q == 0)
-		{
-			return ESP8266_RSP_UNKNOWN;
-		}
-
-		strncpy(SDKversion, p, q-p);
-
-		// Look for "compile time:" in the rxBuffer
-		p = strstr(esp8266RxBuffer, "compile time:");
-
-		if (p == 0)
-		{
-			return ESP8266_RSP_UNKNOWN;
-		}
-
-		p += strlen("compile time:");
-		q = strchr(p, '\r'); // Look for \r
-
-		if (q == 0)
-		{
-			return ESP8266_RSP_UNKNOWN;
-		}
-
-		strncpy(compileTime, p, q-p);
 	}
-	*/
 
-	return rsp;
+	findResult = _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+
+	return totalBytesRead;
+}
+
+bool ESPZeroAT::deepSleep(uint32_t t_mS)
+{
+	char strTime_mS[12];
+
+	itoa(t_mS, strTime_mS, 10);
+	sendCommand(ESP8266_GSLP, ESP8266_CMD_SETUP, strTime_mS);
+
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
 }
 
 bool ESPZeroAT::disableEcho()
 {
 	sendCommand(ESP8266_ATE0);
 
-	if (_ptrHWSerial->find(ESP8266_RESPONSE_OK))
-	{
-		return true;
-	}
-
-	else
-	{
-		return false;
-	}
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
 }
 
 bool ESPZeroAT::enableEcho()
 {
 	sendCommand(ESP8266_ATE1);
 
-	if (_ptrHWSerial->find(ESP8266_RESPONSE_OK))
-	{
-		return true;
-	}
-
-	else
-	{
-		return false;
-	}
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
 }
 
-bool ESPZeroAT::setBaud(uint32_t baud)
+bool ESPZeroAT::restore()
 {
-	// Send AT+UART=baud,databits,stopbits,parity,flowcontrol
-	//sendCommand();
+	sendCommand(ESP8266_RESTORE);
 
-	if (_ptrHWSerial->find(ESP8266_RESPONSE_OK))
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+}
+
+bool ESPZeroAT::setUART(uint32_t baud, uint8_t dataBits, uint8_t stopBits, uint8_t parity, uint8_t flowControl)
+{
+	// TODO
+	// Send AT+UART_DEF=baud,databits,stopbits,parity,flowcontrol
+	// Example: AT+UART_DEF=115200,8,1,0,0
+
+	char params[12] = "";
+	uint8_t stringIndex = 0;
+
+	itoa(baud, params, 10);
+	stringIndex = strlen(params);
+	params[stringIndex++] = dataBits + '0';
+	params[stringIndex++] = stopBits + '0';
+	params[stringIndex++] = parity + '0';
+	params[stringIndex++] = flowControl + '0';
+	params[stringIndex] = 0;
+
+	sendCommand(ESP8266_UART_DEF, ESP8266_CMD_SETUP, params);
+
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+}
+
+bool ESPZeroAT::sleep(uint8_t sleepMode)
+{
+	sendCommand(ESP8266_SLEEP, sleepMode);
+
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+}
+
+bool ESPZeroAT::wakeGPIO(bool trigEnable, uint8_t trigSourcePin, bool trigLogicLevel)
+{
+	char params[8] = "";
+	uint8_t stringIndex = 0;
+
+	params[stringIndex++] = trigEnable + '0';
+
+	itoa(trigSourcePin, &params[stringIndex], 10);
+	stringIndex = strlen(params);
+
+	params[stringIndex++] = trigLogicLevel + '0';
+
+	params[stringIndex] = 0;
+
+	sendCommand(ESP8266_WAKEUPGPIO, ESP8266_CMD_SETUP, params);
+
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+}
+
+bool ESPZeroAT::wakeGPIO(bool trigEnable, uint8_t trigSourcePin, bool trigLogicLevel, uint8_t trigSourceFlag, bool awakeLogicLevel)
+{
+	char params[8] = "";
+	uint8_t stringIndex = 0;
+
+	params[stringIndex++] = trigEnable + '0';
+
+	itoa(trigSourcePin, &params[stringIndex], 10);
+	stringIndex = strlen(params);
+
+	params[stringIndex++] = trigLogicLevel + '0';
+
+	itoa(trigSourceFlag, &params[stringIndex], 10);
+	stringIndex = strlen(params);
+
+	params[stringIndex++] = awakeLogicLevel + '0';
+
+	params[stringIndex] = 0;
+
+	sendCommand(ESP8266_WAKEUPGPIO, ESP8266_CMD_SETUP, params);
+
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+}
+
+/* TODO
+bool ESPZeroAT::setRFpower()
+{
+
+}
+*/
+
+/* TODO
+bool ESPZeroAT::setRFbyVDD33()
+{
+
+}
+*/
+
+/* TODO
+bool ESPZeroAT::setRFautoTrace()
+{
+
+}
+*/
+
+/* TODO
+bool ESPZeroAT::checkSystemRAM()
+{
+
+}
+*/
+
+bool ESPZeroAT::checkSystemADC(uint16_t* adcVal)
+{
+	int16_t bytesRead = 0;
+	int16_t totalBytesRead = 0;
+	uint8_t findResult = 0;
+	char strResponse[9] = "+";
+	char strResult[5] = "";
+
+	strcat(strResponse, ESP8266_SYSADC);
+	strcat(strResponse, ":");
+
+	sendCommand(ESP8266_SYSADC, ESP8266_CMD_QUERY);
+
+	findResult = _ptrHWSerial->find(strResponse);
+
+	if(findResult)
 	{
-		return true;
+		bytesRead = _ptrHWSerial->readBytesUntil('\r', strResult, 5);
+
+		if(bytesRead > 0)
+		{
+			strResult[bytesRead - 1] = 0;	// Replace '\r' with null terminator
+			*adcVal = atoi(strResult);
+		}
 	}
 
-	else
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+}
+
+bool ESPZeroAT::setGPIOmode(uint8_t pin, uint8_t mode, bool pullup)
+{
+	char params[6] = "";
+	uint8_t stringIndex = 0;
+
+	itoa(pin, params, 10);
+	stringIndex = strlen(params);
+
+	itoa(mode, &params[stringIndex], 10);
+	stringIndex = strlen(params);
+
+	params[stringIndex++] = pullup + '0';
+
+	params[stringIndex] = 0;
+
+	sendCommand(ESP8266_SYSIOSETCFG, ESP8266_CMD_SETUP, params);
+
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+}
+
+/*
+bool ESPZeroAT::getGPIOmode()
+{
+	// TODO
+
+	return 0;
+}
+*/
+
+bool ESPZeroAT::setGPIOdir(uint8_t pin, bool dir)
+{
+	char params[4] = "";
+	uint8_t stringIndex = 0;
+
+	itoa(pin, params, 10);
+	stringIndex = strlen(params);
+
+	params[stringIndex++] = dir + '0';
+
+	params[stringIndex] = 0;
+
+	sendCommand(ESP8266_SYSGPIODIR, ESP8266_CMD_SETUP, params);
+
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+}
+
+bool ESPZeroAT::writeGPIO(uint8_t pin, bool level)
+{
+	char params[4] = "";
+	uint8_t stringIndex = 0;
+
+	itoa(pin, params, 10);
+	stringIndex = strlen(params);
+
+	params[stringIndex++] = level + '0';
+
+	params[stringIndex] = 0;
+
+	sendCommand(ESP8266_SYSGPIOWRITE, ESP8266_CMD_SETUP, params);
+
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+}
+
+bool ESPZeroAT::readGPIO(uint8_t pin, bool* level)
+{
+	int16_t bytesRead = 0;
+	int16_t totalBytesRead = 0;
+	uint8_t findResult = 0;
+	char strResponse[14] = "+";
+	char strResult = 0;
+	char params[4] = "";
+	uint8_t stringIndex = 0;
+
+	strcat(strResponse, ESP8266_SYSGPIOREAD);
+	strcat(strResponse, ":");
+
+	itoa(pin, params, 10);
+	stringIndex = strlen(params);
+
+	params[stringIndex] = 0;
+
+	sendCommand(ESP8266_SYSGPIOREAD, ESP8266_CMD_SETUP, params);
+
+	findResult = _ptrHWSerial->find(strResponse);
+
+	if(findResult)
 	{
-		return false;
+		_ptrHWSerial->find(',');
+		_ptrHWSerial->find(',');
+		strResult = _ptrHWSerial->read();
+
+		*level = strResult - '0';
 	}
+
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
 }
 
 //////////////////////////////////////////////////
 // Private, Low-Level, Ugly, Hardware Functions //
 //////////////////////////////////////////////////
+
+void ESPZeroAT::sendCommand(const char * cmd, const char digit)
+{
+	_ptrHWSerial->print(ESP8266_AT_CMD);
+	_ptrHWSerial->print(cmd);
+
+	_ptrHWSerial->print("=");
+	_ptrHWSerial->print(digit);
+
+	_ptrHWSerial->print("\r\n");
+}
 
 void ESPZeroAT::sendCommand(const char * cmd, enum esp8266_command_type type, const char * params)
 {
