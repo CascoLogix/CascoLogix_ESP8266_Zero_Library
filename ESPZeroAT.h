@@ -36,6 +36,7 @@
 
 
 #define MAX_SSID_LEN	32	// Per the 802.11 standard (Note: may/may not include null terminator)
+#define MAX_PWD_LEN		64	// Per the 802.11 standard (Note: may/may not include null terminator)
 
 
 class ESPZeroAT //: public Stream
@@ -44,7 +45,9 @@ public:
 	ESPZeroAT();
 	bool begin(HardwareSerial* ptrHWSerial, uint32_t baud);
 
-	// Basic AT Commands
+	/*********************/
+	/* Basic AT Commands */
+	/*********************/
 	bool test();
 	bool reset();
 	bool getVer(char ATversion[], char SDKversion[], char compileTime[]);
@@ -71,34 +74,31 @@ public:
 	bool writeGPIO(uint8_t pin, bool level);
 	bool readGPIO(uint8_t pin, bool* level);
 
-	// WiFi Functions
-	/*
-	int16_t getMode();
-	int16_t setMode(esp8266_wifi_mode mode);
-	int16_t setMode(int8_t mode);
-	int16_t connect(const char * ssid);
-	int16_t connect(const char * ssid, const char * pwd);
-	int16_t getAP(char * ssid);
-	int16_t localMAC(char * mac);
-	int16_t disconnect();
+	/*******************/
+	/* WiFi Functions  */
+	/*******************/
+	bool setMode(uint8_t mode);
+	bool getMode(uint8_t* mode);
+	bool connect(const char * ssid, const char * pwd, uint8_t* errCode);
+	bool getAP(char * ssid);
+	// TODO: bool localMAC(char * mac);
+	// TODO: bool disconnect();
 	IPAddress localIP();
-	*/
 
-	/////////////////////
-	// TCP/IP Commands //
-	/////////////////////
-	/*
-	int16_t status();
-	int16_t updateStatus();
-	int16_t tcpConnect(uint8_t linkID, const char * destination, uint16_t port, uint16_t keepAlive);
-	int16_t tcpSend(uint8_t linkID, const uint8_t *buf, uint32_t size);
-	int16_t close(uint8_t linkID);
-	int16_t setTransferMode(uint8_t mode);
-	int16_t setMux(uint8_t mux);
-	int16_t configureTCPServer(uint16_t port, uint8_t create = 1);
-	int16_t ping(IPAddress ip);
-	int16_t ping(char * server);
-	*/
+	/*******************/
+	/* TCP/IP Commands */
+	/*******************/
+	// TODO: int16_t status();
+	// TODO: int16_t updateStatus();
+	// TODO: int16_t tcpConnect(uint8_t linkID, const char * destination, uint16_t port, uint16_t keepAlive);
+	// TODO: int16_t tcpSend(uint8_t linkID, const uint8_t *buf, uint32_t size);
+	// TODO: int16_t close(uint8_t linkID);
+	// TODO: int16_t setTransferMode(uint8_t mode);
+	// TODO: int16_t setMux(uint8_t mux);
+	// TODO: int16_t configureTCPServer(uint16_t port, uint8_t create = 1);
+	// TODO: int16_t ping(IPAddress ip);
+	// TODO: int16_t ping(char * server);
+
 private:
     HardwareSerial* _ptrHWSerial;
     uint32_t _baud;

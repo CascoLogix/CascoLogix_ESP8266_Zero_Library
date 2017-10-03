@@ -318,6 +318,14 @@ typedef enum esp8266_tetype {
 	ESP8266_SERVER
 };
 
+typedef enum esp8266_AP_connect_error {
+	ESP8266_AP_CONN_ERR_NONE = 0,
+	ESP8266_AP_CONN_ERR_CONN_TIMEOUT = 1,
+	ESP8266_AP_CONN_ERR_WRONG_PWD = 2,
+	ESP8266_AP_CONN_ERR_NO_TARGET_AP = 3,
+	ESP8266_AP_CONN_ERR_CONN_FAILED = 4
+};
+
 
 /*************************************************************************************/
 

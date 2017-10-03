@@ -269,7 +269,7 @@ bool ESPZeroAT::checkSystemADC(uint16_t* adcVal)
 	int16_t bytesRead = 0;
 	int16_t totalBytesRead = 0;
 	uint8_t findResult = 0;
-	char strResponse[9] = "+";
+	char strResponse[strlen(ESP8266_SYSADC) + 3] = "+";
 	char strResult[5] = "";
 
 	strcat(strResponse, ESP8266_SYSADC);
@@ -361,7 +361,7 @@ bool ESPZeroAT::readGPIO(uint8_t pin, bool* level)
 	int16_t bytesRead = 0;
 	int16_t totalBytesRead = 0;
 	uint8_t findResult = 0;
-	char strResponse[14] = "+";
+	char strResponse[strlen(ESP8266_SYSGPIOREAD) + 3] = "+";
 	char strResult = 0;
 	char params[4] = "";
 	uint8_t stringIndex = 0;
@@ -380,15 +380,92 @@ bool ESPZeroAT::readGPIO(uint8_t pin, bool* level)
 
 	if(findResult)
 	{
-		_ptrHWSerial->find(',');
-		_ptrHWSerial->find(',');
-		strResult = _ptrHWSerial->read();
+		_ptrHWSerial->find(',');			// Discard pin response
+		_ptrHWSerial->find(',');			// Discard dir response
+		strResult = _ptrHWSerial->read();	// Get level response
 
 		*level = strResult - '0';
 	}
 
 	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
 }
+
+
+/*************************************************************************************/
+/* Basic AT Commands 																 */
+/*************************************************************************************/
+bool ESPZeroAT::setMode(uint8_t mode)
+{
+	bool findResult = 0;
+	char strResponse[strlen(ESP8266_CWMODE_DEF) + 3] = "+";
+
+	mode += '0';
+	sendCommand(ESP8266_CWMODE_DEF, ESP8266_CMD_SETUP, (char*)&mode);
+
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+}
+
+bool ESPZeroAT::getMode(uint8_t* mode)
+{
+	bool findResult = 0;
+	char strResponse[strlen(ESP8266_CWMODE_DEF) + 3] = "+";
+
+	sendCommand(ESP8266_CWMODE_DEF, ESP8266_CMD_QUERY);
+
+	strcat(strResponse, ESP8266_CWMODE_DEF);
+	strcat(strResponse, ":");
+
+	findResult = _ptrHWSerial->find(strResponse);
+
+	if(findResult)
+	{
+		*mode = _ptrHWSerial->read() - '0';	// Get level response
+	}
+
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+}
+
+bool ESPZeroAT::connect(const char * ssid, const char * pwd, uint8_t * errCode)
+{
+	bool retVal = 0;
+	char strResponse[strlen(ESP8266_CWJAP_CUR) + 3] = "+";
+	char strCmdResponse[strlen(ESP8266_CWJAP_CUR) + 3 + strlen(ESP8266_RESPONSE_ERROR)] = "";
+	char params[MAX_SSID_LEN + MAX_PWD_LEN + 2] = "";
+	uint8_t stringIndex = 0;
+
+	strcat(params, ssid);
+	strcat(params, ",");
+	strcat(params, pwd);
+
+	sendCommand(ESP8266_CWJAP_CUR, ESP8266_CMD_SETUP, params);
+
+	strcat(strResponse, ESP8266_CWJAP_CUR);
+	strcat(strResponse, ":");
+
+	_ptrHWSerial->readBytesUntil('\r', strCmdResponse, 64);
+
+	if(strstr(strCmdResponse, ESP8266_RESPONSE_OK))
+	{
+		retVal = 1;
+		*errCode = ESP8266_AP_CONN_ERR_NONE;
+	}
+
+	else if (strstr(strCmdResponse, ESP8266_RESPONSE_ERROR))
+	{
+		retVal = 0;
+		stringIndex = strchr(strCmdResponse, ':');
+		*errCode = strCmdResponse[stringIndex + 1] - '0';
+	}
+
+	return retVal;
+}
+
+bool ESPZeroAT::getAP(char * ssid)
+{
+	// TODO: This whole function needs written
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+}
+
 
 //////////////////////////////////////////////////
 // Private, Low-Level, Ugly, Hardware Functions //
