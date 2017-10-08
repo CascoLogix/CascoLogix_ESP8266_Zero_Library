@@ -392,7 +392,7 @@ bool ESPZeroAT::readGPIO(uint8_t pin, bool* level)
 
 
 /*************************************************************************************/
-/* Basic AT Commands 																 */
+/* WiFi Commands 																 */
 /*************************************************************************************/
 bool ESPZeroAT::setMode(uint8_t mode)
 {
@@ -428,9 +428,9 @@ bool ESPZeroAT::getMode(uint8_t* mode)
 bool ESPZeroAT::connect(const char * ssid, const char * pwd, uint8_t * errCode)
 {
 	bool retVal = 0;
-	char strResponse[strlen(ESP8266_CWJAP_CUR) + 3] = "+";
-	char strCmdResponse[strlen(ESP8266_CWJAP_CUR) + 3 + strlen(ESP8266_RESPONSE_ERROR)] = "";
-	char params[MAX_SSID_LEN + MAX_PWD_LEN + 2] = "";
+	char strResponse[strlen(ESP8266_CWJAP_CUR) + 6] = "+"; 	// Add 6 for '+', ':', error#, '\r', '\n' and null
+	char strCmdResponse[strlen(ESP8266_CWJAP_CUR) + 6 + strlen(ESP8266_RESPONSE_ERROR)] = "";
+	char params[MAX_SSID_LEN + MAX_PWD_LEN + 2] = "";		// Add 2 for ',' and null
 	uint8_t stringIndex = 0;
 
 	strcat(params, ssid);
@@ -442,7 +442,7 @@ bool ESPZeroAT::connect(const char * ssid, const char * pwd, uint8_t * errCode)
 	strcat(strResponse, ESP8266_CWJAP_CUR);
 	strcat(strResponse, ":");
 
-	_ptrHWSerial->readBytesUntil('\r', strCmdResponse, 64);
+	stringIndex = _ptrHWSerial->readBytesUntil('\r', strCmdResponse, 64);	// Read serial characters into string and return #bytes read
 
 	if(strstr(strCmdResponse, ESP8266_RESPONSE_OK))
 	{
@@ -450,20 +450,477 @@ bool ESPZeroAT::connect(const char * ssid, const char * pwd, uint8_t * errCode)
 		*errCode = ESP8266_AP_CONN_ERR_NONE;
 	}
 
-	else if (strstr(strCmdResponse, ESP8266_RESPONSE_ERROR))
+	else
 	{
 		retVal = 0;
-		stringIndex = strchr(strCmdResponse, ':');
-		*errCode = strCmdResponse[stringIndex + 1] - '0';
+		stringIndex = strchr(strCmdResponse, ':');			// Get index of ':' character in string
+		*errCode = strCmdResponse[stringIndex + 1] - '0'; 	// Get ASCII number following ':' and convert to numeric value
 	}
 
 	return retVal;
 }
 
-bool ESPZeroAT::getAP(char * ssid)
+bool ESPZeroAT::configLAPcmd()
 {
-	// TODO: This whole function needs written
-	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+	// TODO: Not yet implemented. This whole function needs written
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::getAP(apTable_t * apTable = 0)
+{
+	bool retVal = 0;
+	char strResponse[] = "";
+	char strCmdResponse[] = "";
+	char params[] = "";
+	uint8_t stringIndex = 0;
+
+	// Prepare parameter string
+	strcat(params, ssid);
+	strcat(params, ",");
+	strcat(params, pwd);
+
+	// Send command with parameters
+	sendCommand(ESP8266_CWJAP_CUR, ESP8266_CMD_SETUP, params);
+
+	// Prepare response string
+	strcat(strResponse, ESP8266_CWJAP_CUR);
+	strcat(strResponse, ":");
+
+	// Get response
+	stringIndex = _ptrHWSerial->readBytesUntil('\r', strCmdResponse, 64);	// Read serial characters into string and return #bytes read
+
+	// Check response
+	if(strstr(strCmdResponse, ESP8266_RESPONSE_OK))
+	{
+		retVal = 1;
+		*errCode = ESP8266_AP_CONN_ERR_NONE;
+	}
+
+	else
+	{
+		retVal = 0;
+		stringIndex = strchr(strCmdResponse, ':');			// Get index of ':' character in string
+		*errCode = strCmdResponse[stringIndex + 1] - '0'; 	// Get ASCII number following ':' and convert to numeric value
+	}
+
+	return retVal;
+}
+
+bool ESPZeroAT::disconnect()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::configSoftAP()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::getSoftAPconfig()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::getStationIP()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::enableDHCP()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::disableDHCP()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::queryDHCP()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::setSoftAPaddrRange()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::getSoftAPaddrRange()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::enableAutoConnectAP()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::disableAutoConnectAP()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::queryAutoConnectAP()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::setStationMACaddr()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::getStationMACaddr()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::setSoftAPmacAddr()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::getSoftAPmacAddr()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::setStationIP()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::getStationIP()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::setSoftAPaddr()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::getSoftAPaddr()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::startSmartConfig(uint8_t type = 0)
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::stopSmartConfig()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::enableWPS()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::disableWPS()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::configureMDNS()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::configureStationName()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::queryStationName()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+
+/*************************************************************************************/
+/* TCP/IP Commands 																 */
+/*************************************************************************************/
+bool ESPZeroAT::status()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::updateStatus()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::dnsFunction(char strDomainName[])
+{
+	// MAX_DNS_NAME_LEN
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::openConnection(int8_t linkID = -1, char * strConnType, char * strRemoteIP, char * strRemotePort, uint16_t tKeepAlive = 0)
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::setSSLbufferSize()
+{	// Can be either 2048 or 4096
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::sendDataLen(int8_t linkID = -1, uint16_t length, char * remoteIP = 0, char * remotePort = 0, uint8_t * ptrDataBuf)
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::sendDataStr(int8_t linkID = -1, uint16_t length, char * remoteIP = 0, char * remotePort = 0, char * ptrDataBuf)
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::sendDataBuf(int8_t linkID = -1, uint8_t segmentID, uint16_t length, uint8_t * ptrDataBuf)
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::bufferReset(int8_t linkID = -1)
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::getBufferStatus(int8_t linkID = -1)
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::getSendStatus(int8_t linkID = -1, uint8_t segmentID)
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::closeConnection(int8_t linkID = -1)
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::getLocalIPaddr(char * ipAddress)
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::enableMultipleConnection()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::disableMultipleConnection()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::queryMultipleConnection()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::createServer()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::deleteServer()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::setTransmissionMode(uint8_t mode)
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+/*
+bool ESPZeroAT::saveTransparentMode()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+*/
+
+bool ESPZeroAT::setTCPserverTimeout(uint16_t tTimeout)
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::getTCPserverTimeout(uint16_t tTimeout)
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::ping(char* IPaddress, uint16_t tTimeMs)
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::WiFiSoftwareUpdate(uint8_t option)
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+/*
+bool ESPZeroAT::IPDinfoMode(uint8_t mode)
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::receiveNetworkData()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+*/
+
+bool ESPZeroAT::setSNTPconfig()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::getSNTPconfig()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::getSNTPtime()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::setUserDefDNSserver()
+{
+	bool retVal = 0;
+
+	return retVal;
+}
+
+bool ESPZeroAT::getUserDefDNSserver()
+{
+	bool retVal = 0;
+
+	return retVal;
 }
 
 

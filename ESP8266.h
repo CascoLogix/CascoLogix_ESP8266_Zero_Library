@@ -257,6 +257,11 @@ AT+CIPDNS_DEF Sets user-defined DNS servers; configuration saved in the flash
 #define ESP8266_RESPONSE_CRLF		ESP8266_AT_TERMINATE
 
 
+#define MAX_SSID_LEN		32	// Per the 802.11 standard (Note: may/may not include null terminator)
+#define MAX_PWD_LEN			64	// Per the 802.11 standard (Note: may/may not include null terminator)
+#define MAC_ADDR_LEN		12	// 12 characters "xx:xx:xx:xx" (includes null)
+#define MAX_DNS_NAME_LEN	64	// Max domain name length
+
 /*************************************************************************************/
 // Enums and Structs
 /*************************************************************************************/
@@ -310,6 +315,7 @@ typedef enum esp8266_socket_state {
 typedef enum esp8266_connection_type {
 	ESP8266_TCP,
 	ESP8266_UDP,
+	ESP8266_SSL,
 	ESP8266_TYPE_UNDEFINED
 };
 
@@ -345,6 +351,16 @@ struct esp8266_status
 	esp8266_ipstatus ipstatus[ESP8266_MAX_SOCK_NUM];
 };
 
+typedef struct
+{	// Refer to ESP8266 AT Commands section 4.2.8
+	uint8_t ecn;				// encryption method {0 - 5}
+	char ssid[MAX_SSID_LEN];
+	char rssi[8];
+	char mac[MAC_ADDR_LEN];
+	uint8_t ch;
+	char freqOffset[4];
+	char freqCalibration[8];
+} apTable_t;
 
 
 /*************************************************************************************/

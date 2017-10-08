@@ -35,10 +35,6 @@
 //#include <Stream.h>
 
 
-#define MAX_SSID_LEN	32	// Per the 802.11 standard (Note: may/may not include null terminator)
-#define MAX_PWD_LEN		64	// Per the 802.11 standard (Note: may/may not include null terminator)
-
-
 class ESPZeroAT //: public Stream
 {
 public:
@@ -80,24 +76,68 @@ public:
 	bool setMode(uint8_t mode);
 	bool getMode(uint8_t* mode);
 	bool connect(const char * ssid, const char * pwd, uint8_t* errCode);
-	bool getAP(char * ssid);
-	// TODO: bool localMAC(char * mac);
-	// TODO: bool disconnect();
-	IPAddress localIP();
+	bool configLAPcmd();
+	bool getAP(apTable_t * apTable);
+	bool disconnect();
+	bool configSoftAP();
+	bool getSoftAPconfig();
+	bool getStationIP();
+	bool enableDHCP();
+	bool disableDHCP();
+	bool queryDHCP();
+	bool setSoftAPaddrRange();
+	bool getSoftAPaddrRange();
+	bool enableAutoConnectAP();
+	bool disableAutoConnectAP();
+	bool queryAutoConnectAP();
+	bool setStationMACaddr();
+	bool getStationMACaddr();
+	bool setSoftAPmacAddr();
+	bool getSoftAPmacAddr();
+	bool setStationIP();
+	bool getStationIP();
+	bool setSoftAPaddr();
+	bool getSoftAPaddr();
+	bool startSmartConfig(uint8_t type);
+	bool stopSmartConfig();
+	bool enableWPS();
+	bool disableWPS();
+	bool configureMDNS();
+	bool configureStationName();
+	bool queryStationName();
 
 	/*******************/
 	/* TCP/IP Commands */
 	/*******************/
-	// TODO: int16_t status();
-	// TODO: int16_t updateStatus();
-	// TODO: int16_t tcpConnect(uint8_t linkID, const char * destination, uint16_t port, uint16_t keepAlive);
-	// TODO: int16_t tcpSend(uint8_t linkID, const uint8_t *buf, uint32_t size);
-	// TODO: int16_t close(uint8_t linkID);
-	// TODO: int16_t setTransferMode(uint8_t mode);
-	// TODO: int16_t setMux(uint8_t mux);
-	// TODO: int16_t configureTCPServer(uint16_t port, uint8_t create = 1);
-	// TODO: int16_t ping(IPAddress ip);
-	// TODO: int16_t ping(char * server);
+	bool status();
+	bool updateStatus();
+	bool dnsFunction(char strDomainName[]);
+	bool openConnection(int8_t linkID, char * strConnType, char * strRemoteIP, char * strRemotePort, uint16_t tKeepAlive);
+	bool setSSLbufferSize();
+	bool sendDataLen(int8_t linkID, uint16_t length, char * remoteIP, char * remotePort, uint8_t * ptrDataBuf);
+	bool sendDataStr(int8_t linkID, uint16_t length, char * remoteIP, char * remotePort, char * strData);
+	bool sendDataBuf(int8_t linkID, uint8_t segmentID, uint16_t length, uint8_t * ptrDataBuf);
+	bool bufferReset(int8_t linkID);
+	bool getBufferStatus(int8_t linkID);
+	bool getSendStatus(int8_t linkID, uint8_t segmentID);
+	bool closeConnection(int8_t linkID);
+	bool getLocalIPaddr(char * ipAddress);
+	bool enableMultipleConnection();
+	bool disableMultipleConnection();
+	bool queryMultipleConnection();
+	bool createServer();
+	bool deleteServer();
+	bool setTransmissionMode(uint8_t mode);
+	bool setTCPserverTimeout(uint16_t tTimeout);
+	bool getTCPserverTimeout(uint16_t tTimeout);
+	bool ping(char* IPaddress, uint16_t tTimeMs);
+	bool WiFiSoftwareUpdate(uint8_t option);
+	bool IPDinfoMode(uint8_t mode);
+	bool setSNTPconfig();
+	bool getSNTPconfig();
+	bool getSNTPtime();
+	bool setUserDefDNSserver();
+	bool getUserDefDNSserver();
 
 private:
     HardwareSerial* _ptrHWSerial;
