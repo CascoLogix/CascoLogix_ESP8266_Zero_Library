@@ -57,32 +57,32 @@ bool ESPZeroAT::begin(HardwareSerial* ptrHWSerial, uint32_t baud)
 /*************************************************************************************/
 bool ESPZeroAT::test()
 {
-	_ptrHWSerial->print(ESP8266_AT_TEST); 		// Send AT
-	_ptrHWSerial->print(ESP8266_AT_TERMINATE);	// Terminate command string
+	_ptrHWSerial->print(ESP8266_AT_TEST); 				// Send AT command
+	_ptrHWSerial->print(ESP8266_AT_TERMINATE);			// Terminate command string
 
-	if (_ptrHWSerial->find(ESP8266_RESPONSE_OK))
+	if (_ptrHWSerial->find(ESP8266_RESPONSE_OK))		// Look for OK response
 	{
-		return true;
+		return true;									// Return true if found
 	}
 
 	else
 	{
-		return false;
+		return false;									// Return false if not found
 	}
 }
 
 bool ESPZeroAT::reset()
 {
-	sendCommand(ESP8266_RESET); // Send AT+RST
+	sendCommand(ESP8266_RESET);							// Send AT+RST command
 
-	if (_ptrHWSerial->find(ESP8266_RESPONSE_READY))
+	if (_ptrHWSerial->find(ESP8266_RESPONSE_READY))		// Look for ready response
 	{
-		return true;
+		return true;									// Return true if found
 	}
 
 	else
 	{
-		return false;
+		return false;									// Return false if not found
 	}
 }
 
@@ -104,64 +104,62 @@ bool ESPZeroAT::getVer(char ATversion[], char SDKversion[], char compileTime[])
 		char* pStrResult;
 	} parseTable[] = {
 	//	{pStrResponse, pStrResult},
-		{"AT version:", ATversion},
+		{"AT version:", ATversion},										// First string is the response to look for, second string is the response to store
 		{"SDK version:", SDKversion},
 		{"compile time:", compileTime}
 	};
 
-	sendCommand(ESP8266_GMR); // Send AT+GMR
+	sendCommand(ESP8266_GMR); 											// Send AT+GMR command
 
 	uint8_t idx;
 	for(idx = 0; idx < 3; idx++)
 	{
-		findResult = _ptrHWSerial->find(parseTable[idx].pStrResponse);
+		findResult = _ptrHWSerial->find(parseTable[idx].pStrResponse);	// Look for response string from parseTable above
 
-		if(findResult)
+		if(findResult)													// If response string found
 		{
-			bytesRead = _ptrHWSerial->readBytesUntil('\r', parseTable[idx].pStrResult, 30);
+			bytesRead = _ptrHWSerial->readBytesUntil('\r', parseTable[idx].pStrResult, 30);		// Then parse out the version info and store in the parseTable
 			totalBytesRead += bytesRead;
 
-			*(parseTable[idx].pStrResult + bytesRead - 1) = 0;	// Replace '\r' with null terminator
+			*(parseTable[idx].pStrResult + bytesRead - 1) = 0;			// Replace '\r' with null terminator
 
-			_ptrHWSerial->read();	// Read '\n' character
-			totalBytesRead++;
+			_ptrHWSerial->read();										// Read '\n' character
+			totalBytesRead++;											// Increment byte counter
 		}
 	}
 
-	findResult = _ptrHWSerial->find(ESP8266_RESPONSE_OK);
-
-	return totalBytesRead;
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);						// Look for OK response and return true if found;
 }
 
 bool ESPZeroAT::deepSleep(uint32_t t_mS)
 {
 	char strTime_mS[12];
 
-	itoa(t_mS, strTime_mS, 10);
-	sendCommand(ESP8266_GSLP, ESP8266_CMD_SETUP, strTime_mS);
+	itoa(t_mS, strTime_mS, 10);											// Convert integer time into numerical string
+	sendCommand(ESP8266_GSLP, ESP8266_CMD_SETUP, strTime_mS);			// Send command with parameter
 
-	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);						// Look for OK response and return true if found
 }
 
 bool ESPZeroAT::disableEcho()
 {
-	sendCommand(ESP8266_ATE0);
+	sendCommand(ESP8266_ATE0);											// Send command
 
-	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);						// Look for OK response and return true if found
 }
 
 bool ESPZeroAT::enableEcho()
 {
-	sendCommand(ESP8266_ATE1);
+	sendCommand(ESP8266_ATE1);											// Send command
 
-	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);						// Look for OK response and return true if found
 }
 
 bool ESPZeroAT::restore()
 {
-	sendCommand(ESP8266_RESTORE);
+	sendCommand(ESP8266_RESTORE);										// Send command
 
-	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);						// Look for OK response and return true if found
 }
 
 bool ESPZeroAT::setUART(uint32_t baud, uint8_t dataBits, uint8_t stopBits, uint8_t parity, uint8_t flowControl)
@@ -170,70 +168,72 @@ bool ESPZeroAT::setUART(uint32_t baud, uint8_t dataBits, uint8_t stopBits, uint8
 	// Send AT+UART_DEF=baud,databits,stopbits,parity,flowcontrol
 	// Example: AT+UART_DEF=115200,8,1,0,0
 
-	char params[12] = "";
-	uint8_t stringIndex = 0;
+	uint8_t stringIndex;
+	char params[16];								// Allow 16 characters for 7 digit baud, one digit each for data bits, stop bits, parity, flow control, 4 commas and null terminator
 
-	itoa(baud, params, 10);
-	stringIndex = strlen(params);
-	params[stringIndex++] = dataBits + '0';
-	params[stringIndex++] = stopBits + '0';
-	params[stringIndex++] = parity + '0';
-	params[stringIndex++] = flowControl + '0';
-	params[stringIndex] = 0;
+	// Build parameter string
+	itoa(baud, params, 10);							// Convert baud rate integer to ASCII character string
+	stringIndex = strlen(params);					// Get initial length of ASCII character string
+	params[stringIndex++] = dataBits + '0';			// Append string with integer for number of data bits (add '0' for ASCII format)
+	params[stringIndex++] = ',';					// Append string with comma for command parameter list
+	params[stringIndex++] = stopBits + '0';			// Append string with integer for number of stop bits (add '0' for ASCII format)
+	params[stringIndex++] = ',';					// Append string with comma for command parameter list
+	params[stringIndex++] = parity + '0';			// Append string with integer for number of parity bits (add '0' for ASCII format)
+	params[stringIndex++] = ',';					// Append string with comma for command parameter list
+	params[stringIndex++] = flowControl + '0';		// Append string with integer for flow control option (add '0' for ASCII format)
+	params[stringIndex] = 0;						// Null-terminate the string
 
-	sendCommand(ESP8266_UART_DEF, ESP8266_CMD_SETUP, params);
+	sendCommand(ESP8266_UART_DEF, ESP8266_CMD_SETUP, params);	// Send command with parameters
 
-	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);	// Look for "OK" response and return the status
 }
 
 bool ESPZeroAT::sleep(uint8_t sleepMode)
 {
-	sendCommand(ESP8266_SLEEP, sleepMode);
+	sendCommand(ESP8266_SLEEP, sleepMode);								// Send command with parameter
 
-	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);						// Look for OK response and return true if found
 }
 
 bool ESPZeroAT::wakeGPIO(bool trigEnable, uint8_t trigSourcePin, bool trigLogicLevel)
 {
-	char params[8] = "";
+	char params[8] = "";												// Allow 8 characters for 1-digit trigEnable, 1- or 2-digit trigSourcePin, 1-digit trigLogicLevel, 2 commas and null terminator
 	uint8_t stringIndex = 0;
 
-	params[stringIndex++] = trigEnable + '0';
+	// Build parameter string
+	params[stringIndex++] = trigEnable + '0';							// Convert trigEnable value to ASCII char
+	params[stringIndex++] = ',';										// Append string with comma for command parameter list
+	itoa(trigSourcePin, &params[stringIndex], 10);						// Convert trigSourcePin value to ASCII string, appending to parameter string
+	stringIndex = strlen(params);										// Update stringIndex to point to end of parameter string
+	params[stringIndex++] = ',';										// Append string with comma for command parameter list
+	params[stringIndex++] = trigLogicLevel + '0';						// Convert trigLogicLevel value to ASCII char, appending to parameter string
+	params[stringIndex] = 0;											// Null-terminate the string
 
-	itoa(trigSourcePin, &params[stringIndex], 10);
-	stringIndex = strlen(params);
+	sendCommand(ESP8266_WAKEUPGPIO, ESP8266_CMD_SETUP, params);			// Send command with parameters
 
-	params[stringIndex++] = trigLogicLevel + '0';
-
-	params[stringIndex] = 0;
-
-	sendCommand(ESP8266_WAKEUPGPIO, ESP8266_CMD_SETUP, params);
-
-	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);						// Look for OK response and return true if found
 }
 
 bool ESPZeroAT::wakeGPIO(bool trigEnable, uint8_t trigSourcePin, bool trigLogicLevel, uint8_t trigSourceFlag, bool awakeLogicLevel)
 {
-	char params[8] = "";
+	char params[12] = "";												// Allow 12 characters for 1-digit trigEnable, 1- or 2-digit trigSourcePin, 1-digit trigLogicLevel, 1- or 2-digit trigSourceFlag, 1-digit awakeLogicLevel, 4 commas and null terminator
 	uint8_t stringIndex = 0;
 
-	params[stringIndex++] = trigEnable + '0';
+	params[stringIndex++] = trigEnable + '0';							// Convert trigEnable value to ASCII char
+	params[stringIndex++] = ',';										// Append string with comma for command parameter list
+	itoa(trigSourcePin, &params[stringIndex], 10);						// Convert trigSourcePin value to ASCII string, appending to parameter string
+	stringIndex = strlen(params);										// Update stringIndex to point to end of parameter string
+	params[stringIndex++] = ',';										// Append string with comma for command parameter list
+	params[stringIndex++] = trigLogicLevel + '0';						// Convert trigLogicLevel value to ASCII char, appending to parameter string
+	itoa(trigSourceFlag, &params[stringIndex], 10);						// Convert trigSourceFlag value to ASCII string, appending to parameter string
+	stringIndex = strlen(params);										// Update stringIndex to point to end of parameter string
+	params[stringIndex++] = ',';										// Append string with comma for command parameter list
+	params[stringIndex++] = awakeLogicLevel + '0';						// Convert awakeLogicLevel value to ASCII char, appending to parameter string
+	params[stringIndex] = 0;											// Null-terminate the string
 
-	itoa(trigSourcePin, &params[stringIndex], 10);
-	stringIndex = strlen(params);
+	sendCommand(ESP8266_WAKEUPGPIO, ESP8266_CMD_SETUP, params);			// Send command with parameters
 
-	params[stringIndex++] = trigLogicLevel + '0';
-
-	itoa(trigSourceFlag, &params[stringIndex], 10);
-	stringIndex = strlen(params);
-
-	params[stringIndex++] = awakeLogicLevel + '0';
-
-	params[stringIndex] = 0;
-
-	sendCommand(ESP8266_WAKEUPGPIO, ESP8266_CMD_SETUP, params);
-
-	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);
+	return _ptrHWSerial->find(ESP8266_RESPONSE_OK);						// Look for OK response and return true if found
 }
 
 /* TODO
